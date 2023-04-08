@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Task Manager</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="">
+</head>
+
+<body>
+  <h1>Task Manager</h1>
+  <div id="taskListContainer">
+    <ul id="taskList"></ul>
+  </div>
+  <button onclick="addTask()">Add Task</button>
+
+  <!-- Edit Task Modal -->
+  <div id="editTaskModal" class="modal">
+    <div class="modal-content">
+      <h2>Edit Task</h2>
+      <label for="editTitle">Title:</label>
+      <input type="text" id="editTitle">
+      <label for="editDescription">Description:</label>
+      <textarea id="editDescription"></textarea>
+      <label for="editDueDate">Due Date:</label>
+      <input type="date" id="editDueDate">
+      <label for="editPriority">Priority:</label>
+      <select id="editPriority">
+        <option value="low">Low</option>
+        <option value="medium">Medium</option>
+        <option value="high">High</option>
+      </select>
+      <label for="editStatus">Status:</label>
+      <select id="editStatus">
+        <option value="not-started">Not Started</option>
+        <option value="in-progress">In Progress</option>
+        <option value="completed">Completed</option>
+      </select>
+      <button onclick="saveEditedTask()">Save</button>
+      <button onclick="closeModal()">Cancel</button>
+    </div>
+  </div>
+
+  <script>
+    let taskList = [];
+
+    // Retrieve tasks from localStorage
+    if (localStorage.getItem("tasks")) {
+      taskList = JSON.parse(localStorage.getItem("tasks"));
+    }
+
+    // Function to display task list
+    function displayTaskList() {
+      const taskListElement = document.getElementById("taskList");
+      taskListElement.innerHTML = "";
+
+      taskList.forEach(task => {
+        const li = document.createElement("li");
+        li.innerHTML = `
+          <span class="task-title">${task.title}</span>
+          <span class="task-actions">
+            <button onclick="openEditModal('${task.id}')">Edit</button>
+            <button onclick="deleteTask('${task.id}')">Delete</button>
+          </span>
+          <p class="task-description">${task.description}</p>
+          <p class="task-due-date">Due Date: ${task.dueDate}</p>
+          <p class="task-priority">Priority: ${task.priority}</p>
+          <p class="task-status">Status: ${task.status}</p>
+        `;
+        taskListElement.appendChild(li);
+      });
+    }
+
+    // Function to add a new task
+    function addTask() {
+      const title = prompt("Enter task title:");
+      const description = prompt("Enter task description:");
+      const dueDate = prompt("Enter task due date (YYYY-MM-DD):");
+      const priority = prompt("Enter task priority (low, medium, high):");
+      const status = prompt("Enter task status (not-started, in-progress, completed):");
+
+      const task = {
+        id: Date.now().toString(),
+        title,
+        description,
+        dueDate,
+        priority,
+        status
+      };
+
+      taskList.push(task);
+      displayTaskList();
+
+      // Store tasks in localStorage
+      localStorage.setItem("tasks",JSON.stringify(taskList));
+}// Function to open edit modal
+function openEditModal(taskId) {
+  const task = taskList.find(task => task.id === taskId);
+  if (task) {
+    document.getElementById("editTitle").value = task.title;
+    document.getElementById("editDescription").value = task.description;
+    document.getElementById("editDueDate").value = task.dueDate;
+    document.getElementById("editPriority").value = task.priority;
+    document.getElementById("editStatus").value = task.status;
+
+    document.getElementById("editTaskModal").style.display = "block";
+    document.getElementById("editTaskModal").dataset.taskId = taskId;
+  }
+}
+
+// Function to save edited task
+function saveEditedTask() {
+  const taskId = document.getElementById("editTaskModal").dataset.taskId;
+  const taskIndex = taskList.findIndex(task => task.id === taskId);
+
+  if (taskIndex !== -1) {
+    const editedTask = {
+      id: taskId,
+      title: document.getElementById("editTitle").value,
+      description: document.getElementById("editDescription").value,
+      dueDate: document.getElementById("editDueDate").value,
+      priority: document.getElementById("editPriority").value,
+      status: document.getElementById("editStatus").value
+    };
+
+    taskList[taskIndex] = editedTask;
+    displayTaskList();
+    closeModal();
+
+    // Store tasks in localStorage
+    localStorage.setItem("tasks", JSON.stringify(taskList));
+  }
+}
+
+// Function to delete a task
+function deleteTask(taskId) {
+  taskList = taskList.filter(task => task.id !== taskId);
+  displayTaskList();
+
+  // Store tasks in localStorage
+  localStorage.setItem("tasks", JSON.stringify(taskList));
+}
+
+// Function to close edit modal
+function closeModal() {
+  document.getElementById("editTaskModal").style.display = "none";
+}
+
+// Display initial task list
+displayTaskList();
+
+  </script>
+</body>
+</html>
